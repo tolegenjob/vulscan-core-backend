@@ -2,11 +2,11 @@ package io.vulscan.core.persistence
 
 import io.vulscan.core.domain.ScanStatus
 import io.vulscan.kit.contracts.ModuleType
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.dao.DataIntegrityViolationException
 import java.time.Instant
-import java.util.UUID
 
 class ConstraintsIT : PersistenceTestBase() {
 
@@ -79,8 +79,8 @@ class ConstraintsIT : PersistenceTestBase() {
         val chain = newChain()
         findings.saveAndFlush(newFinding(chain))
         jdbc.update("DELETE FROM scans WHERE id = ?", chain.scanId)
-        assert(jobs.findByScanId(chain.scanId).isEmpty())
-        assert(findings.count { it.scanId == chain.scanId } == 0)
+        assertThat(jobs.findByScanId(chain.scanId)).isEmpty()
+        assertThat(findings.findAll().filter { it.scanId == chain.scanId }).isEmpty()
     }
 
     @Test
@@ -89,7 +89,6 @@ class ConstraintsIT : PersistenceTestBase() {
         val scan = scans.findById(chain.scanId).orElseThrow()
         scan.status = ScanStatus.RUNNING
         scans.saveAndFlush(scan)
-        assert(scans.findById(chain.scanId).orElseThrow().status == ScanStatus.RUNNING)
-        UUID.randomUUID()
+        assertThat(scans.findById(chain.scanId).orElseThrow().status).isEqualTo(ScanStatus.RUNNING)
     }
 }
