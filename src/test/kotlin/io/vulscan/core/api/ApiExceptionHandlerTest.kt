@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -46,7 +47,7 @@ class ApiExceptionHandlerTest {
 
     private val mvc: MockMvc = MockMvcBuilders.standaloneSetup(ThrowingController())
         .setControllerAdvice(ApiExceptionHandler())
-        .addFilters(CorrelationFilter())
+        .addFilters<StandaloneMockMvcBuilder>(CorrelationFilter())
         .build()
 
     @Test
