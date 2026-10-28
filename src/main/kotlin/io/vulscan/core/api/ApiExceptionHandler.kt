@@ -8,6 +8,7 @@ import io.vulscan.core.domain.IllegalStateTransitionException
 import io.vulscan.core.domain.InvalidCredentialsException
 import io.vulscan.core.domain.RateLimitedException
 import io.vulscan.core.domain.NotFoundException
+import io.vulscan.core.domain.PayloadTooLargeException
 import io.vulscan.core.domain.ScopeViolationException
 import io.vulscan.core.domain.TooManyActiveScansException
 import io.vulscan.core.domain.ValidationFailedException
@@ -70,6 +71,7 @@ class ApiExceptionHandler {
         is TooManyActiveScansException -> HttpStatus.TOO_MANY_REQUESTS
         is RateLimitedException -> HttpStatus.TOO_MANY_REQUESTS
         is ForbiddenException -> HttpStatus.FORBIDDEN
+        is PayloadTooLargeException -> HttpStatus.UNPROCESSABLE_ENTITY
         is ValidationFailedException -> HttpStatus.BAD_REQUEST
         is InvalidCredentialsException -> HttpStatus.UNAUTHORIZED
     }

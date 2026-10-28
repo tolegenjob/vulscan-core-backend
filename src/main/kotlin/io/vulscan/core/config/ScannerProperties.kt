@@ -34,6 +34,7 @@ data class ScannerProperties(
     data class Outbox(
         @DefaultValue("500") val pollMs: Long,
         @DefaultValue("50") val batchSize: Int,
+        @DefaultValue("true") val enabled: Boolean,
     )
 
     data class Secret(

@@ -3,6 +3,8 @@ package io.vulscan.core.persistence
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import java.util.UUID
 
@@ -24,6 +26,8 @@ interface TargetEndpointRepository : JpaRepository<TargetEndpointEntity, UUID> {
     fun existsByTargetIdAndMethodAndUrl(targetId: UUID, method: io.vulscan.kit.contracts.HttpMethod, url: String): Boolean
 
     fun findByIdAndTargetId(id: UUID, targetId: UUID): TargetEndpointEntity?
+
+    fun findByIdInAndTargetId(ids: Collection<UUID>, targetId: UUID): List<TargetEndpointEntity>
 }
 
 interface ScanPolicyRepository : JpaRepository<ScanPolicyEntity, UUID> {
@@ -48,6 +52,12 @@ interface ResourceAccessRuleRepository : JpaRepository<ResourceAccessRuleEntity,
 
 interface ScanRepository : JpaRepository<ScanEntity, UUID> {
     fun existsByTargetId(targetId: UUID): Boolean
+
+    fun countByStartedByAndStatusIn(startedBy: UUID, statuses: Collection<io.vulscan.core.domain.ScanStatus>): Long
+
+    fun countByStatusIn(statuses: Collection<io.vulscan.core.domain.ScanStatus>): Long
+
+    fun findByStartedBy(startedBy: UUID, pageable: Pageable): Page<ScanEntity>
 }
 
 interface ScanJobRepository : JpaRepository<ScanJobEntity, UUID> {
@@ -56,7 +66,13 @@ interface ScanJobRepository : JpaRepository<ScanJobEntity, UUID> {
 
 interface FindingRepository : JpaRepository<FindingEntity, UUID>, JpaSpecificationExecutor<FindingEntity>
 
-interface OutboxEventRepository : JpaRepository<OutboxEventEntity, UUID>
+interface OutboxEventRepository : JpaRepository<OutboxEventEntity, UUID> {
+    @Query(
+        value = "SELECT * FROM outbox_events WHERE status = 'PENDING' AND next_attempt_at <= now() ORDER BY created_at LIMIT :limit FOR UPDATE SKIP LOCKED",
+        nativeQuery = true,
+    )
+    fun lockPending(@Param("limit") limit: Int): List<OutboxEventEntity>
+}
 
 interface ProcessedMessageRepository : JpaRepository<ProcessedMessageEntity, UUID>
 

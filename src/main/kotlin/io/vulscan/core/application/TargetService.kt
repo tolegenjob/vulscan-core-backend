@@ -43,6 +43,14 @@ class TargetService(
         return target
     }
 
+    /** Цель доступна пользователю и подтверждена; иначе 404 или 409 TARGET_NOT_VERIFIED. */
+    @Transactional(readOnly = true)
+    fun requireVerified(user: CurrentUser, id: UUID): TargetEntity {
+        val target = get(user, id)
+        if (target.status != TargetStatus.VERIFIED) throw ConflictException("Target is not verified", io.vulscan.core.domain.ErrorCodes.TARGET_NOT_VERIFIED)
+        return target
+    }
+
     @Transactional
     fun create(user: CurrentUser, name: String, baseUrl: String): TargetEntity {
         val validated = scopePolicy.validateTarget(baseUrl)

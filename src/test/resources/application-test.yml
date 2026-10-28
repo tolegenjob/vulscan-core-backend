@@ -1,8 +1,11 @@
 scanner:
+  limits:
+    max-active-scans-global: 1000
   jobs:
     lease-sec: 3
   outbox:
     poll-ms: 100
+    enabled: false
   secret:
     key-base64: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
   service-tokens:

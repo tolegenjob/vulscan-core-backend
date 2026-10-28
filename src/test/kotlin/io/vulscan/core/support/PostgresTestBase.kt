@@ -6,6 +6,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
+import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.postgresql.PostgreSQLContainer
 
 @TestConfiguration(proxyBeanMethods = false)
@@ -13,9 +14,13 @@ class PostgresContainerConfig {
     @Bean
     @ServiceConnection
     fun postgres(): PostgreSQLContainer = PostgreSQLContainer("postgres:17-alpine")
+
+    @Bean
+    @ServiceConnection
+    fun kafka(): KafkaContainer = KafkaContainer("apache/kafka:3.9.1")
 }
 
-/** Базовый класс интеграционных тестов: реальный PostgreSQL в Testcontainers. Kafka добавится на этапе C-4. */
+/** Базовый класс интеграционных тестов: реальные PostgreSQL и Kafka в Testcontainers. и Kafka. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(PostgresContainerConfig::class, TestHostResolverConfig::class)

@@ -27,7 +27,7 @@ class ScopePolicyServiceTest {
         scope = ScannerProperties.Scope(cidrs, listOf(80, 443, 8080, 8443)),
         limits = ScannerProperties.Limits(2, 4),
         jobs = ScannerProperties.Jobs(2, 600, 45, 200),
-        outbox = ScannerProperties.Outbox(500, 50),
+        outbox = ScannerProperties.Outbox(500, 50, false),
         secret = ScannerProperties.Secret("", 1),
         serviceTokens = ScannerProperties.ServiceTokens("", "", ""),
         bootstrapAdmin = ScannerProperties.BootstrapAdmin("", ""),

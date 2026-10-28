@@ -56,7 +56,7 @@ class TargetVerificationServiceTest {
             scope = ScannerProperties.Scope(listOf("127.0.0.0/8"), listOf(80)),
             limits = ScannerProperties.Limits(2, 4),
             jobs = ScannerProperties.Jobs(2, 600, 45, 200),
-            outbox = ScannerProperties.Outbox(500, 50),
+            outbox = ScannerProperties.Outbox(500, 50, false),
             secret = ScannerProperties.Secret("", 1),
             serviceTokens = ScannerProperties.ServiceTokens("", "", ""),
             bootstrapAdmin = ScannerProperties.BootstrapAdmin("", ""),

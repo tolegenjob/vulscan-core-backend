@@ -15,6 +15,8 @@ object ErrorCodes {
     const val BAD_CREDENTIALS = "BAD_CREDENTIALS"
     const val RATE_LIMITED = "RATE_LIMITED"
     const val VERIFICATION_FAILED = "VERIFICATION_FAILED"
+    const val TARGET_NOT_VERIFIED = "TARGET_NOT_VERIFIED"
+    const val PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE"
 }
 
 /** Ожидаемая бизнес-ошибка. Сообщение показывается клиенту, поэтому не должно содержать секретов. */
@@ -38,3 +40,5 @@ class RateLimitedException(val retryAfterSec: Long) : DomainException(ErrorCodes
 class ForbiddenException(message: String = "Access denied") : DomainException(ErrorCodes.FORBIDDEN, message)
 
 class ValidationFailedException(message: String) : DomainException(ErrorCodes.VALIDATION_FAILED, message)
+
+class PayloadTooLargeException(message: String) : DomainException(ErrorCodes.PAYLOAD_TOO_LARGE, message)
