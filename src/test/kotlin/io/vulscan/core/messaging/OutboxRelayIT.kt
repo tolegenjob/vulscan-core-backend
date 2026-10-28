@@ -15,7 +15,6 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.Duration
 import java.time.Instant
@@ -30,7 +29,8 @@ class OutboxRelayIT : PersistenceTestBase() {
     @Autowired lateinit var scanRepo: ScanRepository
     @Autowired lateinit var tx: TransactionTemplate
     @Autowired lateinit var sender: OutboxSender
-    @Value("\${spring.kafka.bootstrap-servers}") lateinit var bootstrap: String
+    @Autowired lateinit var kafkaContainer: org.testcontainers.kafka.KafkaContainer
+    private val bootstrap get() = kafkaContainer.bootstrapServers
 
     private fun relay(batch: Int = 50, s: OutboxSender = sender) = OutboxRelay(outbox, scanJobs, scanRepo, tx, s, batch)
 
