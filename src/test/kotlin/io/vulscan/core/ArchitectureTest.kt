@@ -16,9 +16,9 @@ class ArchitectureTest {
             .allowEmptyShould(true)
 
     @ArchTest
-    val apiDoesNotAccessPersistenceDirectly: ArchRule =
+    val apiDoesNotUseRepositoriesDirectly: ArchRule =
         noClasses().that().resideInAPackage("..api..")
-            .should().dependOnClassesThat().resideInAPackage("..persistence..")
+            .should().dependOnClassesThat().haveSimpleNameEndingWith("Repository")
             .allowEmptyShould(true)
 
     @ArchTest

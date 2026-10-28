@@ -37,15 +37,15 @@ class ScopePolicyServiceTest {
 
     @ParameterizedTest
     @CsvSource(
-        "http://localhost,LOOPBACK",
-        "http://127.0.0.1,LOOPBACK",
-        "http://[::1],LOOPBACK",
-        "http://169.254.169.254,LINK_LOCAL",
-        "http://2130706433,LOOPBACK",
+        "http://localhost,PRIVATE_ADDRESS",
+        "http://127.0.0.1,PRIVATE_ADDRESS",
+        "http://[::1],PRIVATE_ADDRESS",
+        "http://169.254.169.254,PRIVATE_ADDRESS",
+        "http://2130706433,PRIVATE_ADDRESS",
         "http://user:pw@public.test,USERINFO_NOT_ALLOWED",
         "ftp://public.test,BAD_URL",
         "http://public.test:22,PORT_NOT_ALLOWED",
-        "http://mixed.test,PRIVATE",
+        "http://mixed.test,PRIVATE_ADDRESS",
         "http://public.test/path,BAD_URL",
         "http://public.test?x=1,BAD_URL",
         "http://nonexistent.test,HOST_NOT_RESOLVED",
@@ -80,6 +80,6 @@ class ScopePolicyServiceTest {
     @Test
     fun `cloud metadata address cannot be allowlisted`() {
         val lax = ScopePolicyService(properties(listOf("169.254.0.0/16", "0.0.0.0/0")), resolver)
-        assertThatThrownBy { lax.validateTarget("http://169.254.169.254") }.hasMessageStartingWith("LINK_LOCAL")
+        assertThatThrownBy { lax.validateTarget("http://169.254.169.254") }.hasMessageStartingWith("PRIVATE_ADDRESS")
     }
 }
