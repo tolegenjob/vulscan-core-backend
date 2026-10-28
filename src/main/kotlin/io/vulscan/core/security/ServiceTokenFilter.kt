@@ -12,7 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 import java.security.MessageDigest
 
 /**
- * Аутентификация модулей на /internal/v1/** по сервисному токену (Authorization: Bearer ...).
+ * Аутентификация модулей на путях /internal/v1/... по сервисному токену (Authorization: Bearer ...).
  * Токен однозначно определяет moduleType; X-Worker-Id обязателен.
  */
 class ServiceTokenFilter(properties: ScannerProperties) : OncePerRequestFilter() {
