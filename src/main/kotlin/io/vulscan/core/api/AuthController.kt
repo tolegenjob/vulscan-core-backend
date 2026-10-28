@@ -39,12 +39,14 @@ class AuthController(
     @PostMapping("/login")
     fun login(@Valid @RequestBody body: LoginRequest, request: HttpServletRequest, response: HttpServletResponse): MeResponse {
         val username = body.username!!.trim()
-        val retryAfter = loginLimiter.tryAcquire("${request.remoteAddr}|${username.lowercase()}")
+        val limiterKey = "${request.remoteAddr}|${username.lowercase()}"
+        val retryAfter = loginLimiter.retryAfterSec(limiterKey)
         if (retryAfter > 0) throw RateLimitedException(retryAfter)
 
         val authentication = try {
             authenticationManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(username, body.password!!))
         } catch (e: AuthenticationException) {
+            loginLimiter.record(limiterKey)
             audit.record(AuditActions.LOGIN_FAILURE, details = mapOf("username" to username.take(100)))
             throw InvalidCredentialsException()
         }

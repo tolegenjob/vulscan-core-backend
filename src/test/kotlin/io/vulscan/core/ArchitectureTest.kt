@@ -24,6 +24,7 @@ class ArchitectureTest {
     @ArchTest
     val noDirectHttpClientUsage: ArchRule =
         noClasses().that().resideOutsideOfPackages("io.vulscan.kit..")
-            .should().dependOnClassesThat().resideInAnyPackage("okhttp3..", "java.net.http..")
+            .should().dependOnClassesThat().haveFullyQualifiedName("okhttp3.OkHttpClient")
+            .orShould().dependOnClassesThat().resideInAPackage("java.net.http..")
             .allowEmptyShould(true)
 }

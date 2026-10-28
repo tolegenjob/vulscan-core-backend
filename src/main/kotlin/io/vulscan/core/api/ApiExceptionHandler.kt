@@ -3,6 +3,7 @@ package io.vulscan.core.api
 import io.vulscan.core.domain.ConflictException
 import io.vulscan.core.domain.DomainException
 import io.vulscan.core.domain.ErrorCodes
+import io.vulscan.core.domain.ForbiddenException
 import io.vulscan.core.domain.IllegalStateTransitionException
 import io.vulscan.core.domain.InvalidCredentialsException
 import io.vulscan.core.domain.RateLimitedException
@@ -67,6 +68,7 @@ class ApiExceptionHandler {
         is ScopeViolationException -> HttpStatus.UNPROCESSABLE_ENTITY
         is TooManyActiveScansException -> HttpStatus.TOO_MANY_REQUESTS
         is RateLimitedException -> HttpStatus.TOO_MANY_REQUESTS
+        is ForbiddenException -> HttpStatus.FORBIDDEN
         is InvalidCredentialsException -> HttpStatus.UNAUTHORIZED
     }
 

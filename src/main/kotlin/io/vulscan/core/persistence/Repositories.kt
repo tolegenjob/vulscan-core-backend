@@ -1,5 +1,7 @@
 package io.vulscan.core.persistence
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import java.util.UUID
@@ -10,6 +12,10 @@ interface UserRepository : JpaRepository<UserEntity, UUID> {
 
 interface TargetRepository : JpaRepository<TargetEntity, UUID> {
     fun findByOwnerId(ownerId: UUID): List<TargetEntity>
+
+    fun findByOwnerId(ownerId: UUID, pageable: Pageable): Page<TargetEntity>
+
+    fun existsByOwnerIdAndBaseUrl(ownerId: UUID, baseUrl: String): Boolean
 }
 
 interface TargetEndpointRepository : JpaRepository<TargetEndpointEntity, UUID> {
@@ -28,7 +34,9 @@ interface ResourceAccessRuleRepository : JpaRepository<ResourceAccessRuleEntity,
     fun findByTargetId(targetId: UUID): List<ResourceAccessRuleEntity>
 }
 
-interface ScanRepository : JpaRepository<ScanEntity, UUID>
+interface ScanRepository : JpaRepository<ScanEntity, UUID> {
+    fun existsByTargetId(targetId: UUID): Boolean
+}
 
 interface ScanJobRepository : JpaRepository<ScanJobEntity, UUID> {
     fun findByScanId(scanId: UUID): List<ScanJobEntity>

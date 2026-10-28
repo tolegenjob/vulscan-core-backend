@@ -14,6 +14,7 @@ object ErrorCodes {
     const val UNAUTHENTICATED = "UNAUTHENTICATED"
     const val BAD_CREDENTIALS = "BAD_CREDENTIALS"
     const val RATE_LIMITED = "RATE_LIMITED"
+    const val VERIFICATION_FAILED = "VERIFICATION_FAILED"
 }
 
 /** Ожидаемая бизнес-ошибка. Сообщение показывается клиенту, поэтому не должно содержать секретов. */
@@ -33,3 +34,5 @@ class TooManyActiveScansException(message: String = "Too many active scans") :
 class InvalidCredentialsException : DomainException(ErrorCodes.BAD_CREDENTIALS, "Invalid username or password")
 
 class RateLimitedException(val retryAfterSec: Long) : DomainException(ErrorCodes.RATE_LIMITED, "Too many requests")
+
+class ForbiddenException(message: String = "Access denied") : DomainException(ErrorCodes.FORBIDDEN, message)

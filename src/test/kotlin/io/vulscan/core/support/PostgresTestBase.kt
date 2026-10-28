@@ -18,5 +18,5 @@ class PostgresContainerConfig {
 /** Базовый класс интеграционных тестов: реальный PostgreSQL в Testcontainers. Kafka добавится на этапе C-4. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import(PostgresContainerConfig::class)
+@Import(PostgresContainerConfig::class, TestHostResolverConfig::class)
 abstract class PostgresTestBase

@@ -25,6 +25,23 @@ class SlidingWindowLimiter(
         }
     }
 
+    /** Сколько секунд ждать, если лимит по [key] исчерпан (0 — можно продолжать). Событие не учитывается. */
+    fun retryAfterSec(key: String): Long {
+        val time = now()
+        val queue = events[key] ?: return 0
+        synchronized(queue) {
+            while (queue.isNotEmpty() && time - queue.first() >= windowMs) queue.removeFirst()
+            if (queue.size < max) return 0
+            return ((windowMs - (time - queue.first()) + 999) / 1000).coerceAtLeast(1)
+        }
+    }
+
+    /** Учитывает событие без проверки лимита. */
+    fun record(key: String) {
+        val queue = events.computeIfAbsent(key) { ArrayDeque() }
+        synchronized(queue) { queue.addLast(now()) }
+    }
+
     /** Удаляет ключи без свежих событий (вызывается периодически, чтобы карта не росла). */
     fun evictIdle() {
         val time = now()
