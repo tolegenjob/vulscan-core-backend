@@ -10,6 +10,7 @@ import io.vulscan.core.domain.RateLimitedException
 import io.vulscan.core.domain.NotFoundException
 import io.vulscan.core.domain.ScopeViolationException
 import io.vulscan.core.domain.TooManyActiveScansException
+import io.vulscan.core.domain.ValidationFailedException
 import io.vulscan.core.observability.CorrelationFilter
 import io.vulscan.kit.contracts.ApiError
 import io.vulscan.kit.contracts.FieldError
@@ -69,6 +70,7 @@ class ApiExceptionHandler {
         is TooManyActiveScansException -> HttpStatus.TOO_MANY_REQUESTS
         is RateLimitedException -> HttpStatus.TOO_MANY_REQUESTS
         is ForbiddenException -> HttpStatus.FORBIDDEN
+        is ValidationFailedException -> HttpStatus.BAD_REQUEST
         is InvalidCredentialsException -> HttpStatus.UNAUTHORIZED
     }
 

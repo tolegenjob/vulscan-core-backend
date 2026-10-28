@@ -36,3 +36,5 @@ class InvalidCredentialsException : DomainException(ErrorCodes.BAD_CREDENTIALS, 
 class RateLimitedException(val retryAfterSec: Long) : DomainException(ErrorCodes.RATE_LIMITED, "Too many requests")
 
 class ForbiddenException(message: String = "Access denied") : DomainException(ErrorCodes.FORBIDDEN, message)
+
+class ValidationFailedException(message: String) : DomainException(ErrorCodes.VALIDATION_FAILED, message)

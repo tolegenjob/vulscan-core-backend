@@ -7,6 +7,7 @@ import io.vulscan.core.domain.ScanStatus
 import io.vulscan.core.domain.TargetStatus
 import io.vulscan.core.domain.TriageStatus
 import io.vulscan.core.domain.UserRole
+import io.vulscan.kit.contracts.AccessRuleRef
 import io.vulscan.kit.contracts.AllowedHost
 import io.vulscan.kit.contracts.AuthType
 import io.vulscan.kit.contracts.HttpMethod
@@ -105,7 +106,7 @@ class ResourceAccessRuleEntity(
     var ownerIdentityId: UUID = UUID.randomUUID(),
     @Enumerated(EnumType.STRING) var sensitivity: Sensitivity = Sensitivity.LOW,
     @JdbcTypeCode(SqlTypes.JSON) var ownerMarkers: List<String> = emptyList(),
-    @JdbcTypeCode(SqlTypes.JSON) var access: Map<String, Any?> = emptyMap(),
+    @JdbcTypeCode(SqlTypes.JSON) var access: List<AccessRuleRef> = emptyList(),
 )
 
 @Entity

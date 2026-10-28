@@ -20,18 +20,30 @@ interface TargetRepository : JpaRepository<TargetEntity, UUID> {
 
 interface TargetEndpointRepository : JpaRepository<TargetEndpointEntity, UUID> {
     fun findByTargetId(targetId: UUID): List<TargetEndpointEntity>
+
+    fun existsByTargetIdAndMethodAndUrl(targetId: UUID, method: io.vulscan.kit.contracts.HttpMethod, url: String): Boolean
+
+    fun findByIdAndTargetId(id: UUID, targetId: UUID): TargetEndpointEntity?
 }
 
 interface ScanPolicyRepository : JpaRepository<ScanPolicyEntity, UUID> {
+    fun findAllByOrderByNameAsc(): List<ScanPolicyEntity>
+
     fun findByName(name: String): ScanPolicyEntity?
 }
 
 interface TestIdentityRepository : JpaRepository<TestIdentityEntity, UUID> {
     fun findByTargetId(targetId: UUID): List<TestIdentityEntity>
+
+    fun existsByTargetIdAndLabel(targetId: UUID, label: String): Boolean
+
+    fun findByIdAndTargetId(id: UUID, targetId: UUID): TestIdentityEntity?
 }
 
 interface ResourceAccessRuleRepository : JpaRepository<ResourceAccessRuleEntity, UUID> {
     fun findByTargetId(targetId: UUID): List<ResourceAccessRuleEntity>
+
+    fun findByIdAndTargetId(id: UUID, targetId: UUID): ResourceAccessRuleEntity?
 }
 
 interface ScanRepository : JpaRepository<ScanEntity, UUID> {
