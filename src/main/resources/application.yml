@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: vulscan-core
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/vulscan}
+    username: ${DB_USER:vulscan}
+    password: ${DB_PASSWORD:vulscan}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+scanner:
+  scope:
+    allowed-private-cidrs: ${SCANNER_ALLOWED_PRIVATE_CIDRS:}
+  secret:
+    key-base64: ${SCANNER_SECRET_KEY:}

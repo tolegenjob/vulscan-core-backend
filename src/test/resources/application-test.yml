@@ -1,0 +1,5 @@
+scanner:
+  jobs:
+    lease-sec: 3
+  outbox:
+    poll-ms: 100
