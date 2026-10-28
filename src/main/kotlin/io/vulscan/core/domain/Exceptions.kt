@@ -11,6 +11,9 @@ object ErrorCodes {
     const val MALFORMED_REQUEST = "MALFORMED_REQUEST"
     const val FORBIDDEN = "FORBIDDEN"
     const val INTERNAL_ERROR = "INTERNAL_ERROR"
+    const val UNAUTHENTICATED = "UNAUTHENTICATED"
+    const val BAD_CREDENTIALS = "BAD_CREDENTIALS"
+    const val RATE_LIMITED = "RATE_LIMITED"
 }
 
 /** Ожидаемая бизнес-ошибка. Сообщение показывается клиенту, поэтому не должно содержать секретов. */
@@ -26,3 +29,7 @@ class IllegalStateTransitionException(message: String) : DomainException(ErrorCo
 
 class TooManyActiveScansException(message: String = "Too many active scans") :
     DomainException(ErrorCodes.TOO_MANY_ACTIVE_SCANS, message)
+
+class InvalidCredentialsException : DomainException(ErrorCodes.BAD_CREDENTIALS, "Invalid username or password")
+
+class RateLimitedException(val retryAfterSec: Long) : DomainException(ErrorCodes.RATE_LIMITED, "Too many requests")

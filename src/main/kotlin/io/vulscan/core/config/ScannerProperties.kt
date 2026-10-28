@@ -10,6 +10,8 @@ data class ScannerProperties(
     @DefaultValue val jobs: Jobs,
     @DefaultValue val outbox: Outbox,
     @DefaultValue val secret: Secret,
+    @DefaultValue val serviceTokens: ServiceTokens,
+    @DefaultValue val bootstrapAdmin: BootstrapAdmin,
 ) {
     data class Scope(
         /** Диапазоны loopback/private/CGNAT, разрешённые для целей (например, сеть docker compose). */
@@ -37,7 +39,24 @@ data class ScannerProperties(
     data class Secret(
         /** Ключ AES-256 в Base64 (переменная окружения SCANNER_SECRET_KEY). */
         @DefaultValue("") val keyBase64: String,
+        @DefaultValue("1") val keyVersion: Int,
     ) {
         override fun toString(): String = "Secret(keyBase64=[REDACTED])"
+    }
+
+    /** Токены сервисных учёток модулей; пустой токен отключает модуль. */
+    data class ServiceTokens(
+        @DefaultValue("") val xss: String,
+        @DefaultValue("") val sqli: String,
+        @DefaultValue("") val idor: String,
+    ) {
+        override fun toString(): String = "ServiceTokens([REDACTED])"
+    }
+
+    data class BootstrapAdmin(
+        @DefaultValue("") val user: String,
+        @DefaultValue("") val password: String,
+    ) {
+        override fun toString(): String = "BootstrapAdmin(user=$user, password=[REDACTED])"
     }
 }

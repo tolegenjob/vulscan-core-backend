@@ -3,3 +3,12 @@ scanner:
     lease-sec: 3
   outbox:
     poll-ms: 100
+  secret:
+    key-base64: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+  service-tokens:
+    xss: test-token-xss
+    sqli: test-token-sqli
+    idor: test-token-idor
+  bootstrap-admin:
+    user: admin
+    password: admin-pass-123

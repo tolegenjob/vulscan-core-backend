@@ -4,6 +4,8 @@ import io.vulscan.core.domain.ConflictException
 import io.vulscan.core.domain.DomainException
 import io.vulscan.core.domain.ErrorCodes
 import io.vulscan.core.domain.IllegalStateTransitionException
+import io.vulscan.core.domain.InvalidCredentialsException
+import io.vulscan.core.domain.RateLimitedException
 import io.vulscan.core.domain.NotFoundException
 import io.vulscan.core.domain.ScopeViolationException
 import io.vulscan.core.domain.TooManyActiveScansException
@@ -26,7 +28,13 @@ class ApiExceptionHandler {
     private val log = LoggerFactory.getLogger(ApiExceptionHandler::class.java)
 
     @ExceptionHandler(DomainException::class)
-    fun domain(e: DomainException): ResponseEntity<ApiError> = respond(statusFor(e), e.code, e.message ?: e.code)
+    fun domain(e: DomainException): ResponseEntity<ApiError> {
+        val response = respond(statusFor(e), e.code, e.message ?: e.code)
+        if (e is RateLimitedException) {
+            return ResponseEntity.status(response.statusCode).header("Retry-After", e.retryAfterSec.toString()).body(response.body)
+        }
+        return response
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun invalidBody(e: MethodArgumentNotValidException): ResponseEntity<ApiError> {
@@ -58,6 +66,8 @@ class ApiExceptionHandler {
         is IllegalStateTransitionException -> HttpStatus.CONFLICT
         is ScopeViolationException -> HttpStatus.UNPROCESSABLE_ENTITY
         is TooManyActiveScansException -> HttpStatus.TOO_MANY_REQUESTS
+        is RateLimitedException -> HttpStatus.TOO_MANY_REQUESTS
+        is InvalidCredentialsException -> HttpStatus.UNAUTHORIZED
     }
 
     private fun respond(status: HttpStatus, code: String, message: String, fieldErrors: List<FieldError> = emptyList()) =
