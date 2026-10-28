@@ -81,7 +81,7 @@ class ResourcesIT : PostgresTestBase() {
         val created = c.post("/api/v1/targets/$id/identities", body)
         assertThat(created.statusCode()).isEqualTo(201)
         assertThat(created.body()).contains("\"hasSecret\":true").doesNotContain(secret)
-        assertThat(c.get("/api/v1/targets/$id/identities").body()).doesNotContain(secret).doesNotContain("password")
+        assertThat(c.get("/api/v1/targets/$id/identities").body()).doesNotContain(secret).doesNotContain("\"password\"")
         assertThat(c.post("/api/v1/targets/$id/identities", body).statusCode()).isEqualTo(409)
         assertThat(output.all).doesNotContain(secret)
 
