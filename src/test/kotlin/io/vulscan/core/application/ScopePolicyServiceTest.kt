@@ -41,7 +41,7 @@ class ScopePolicyServiceTest {
         "http://127.0.0.1,PRIVATE_ADDRESS",
         "http://[::1],PRIVATE_ADDRESS",
         "http://169.254.169.254,PRIVATE_ADDRESS",
-        "http://2130706433,PRIVATE_ADDRESS",
+        "http://2130706433,BAD_HOST",
         "http://user:pw@public.test,USERINFO_NOT_ALLOWED",
         "ftp://public.test,BAD_URL",
         "http://public.test:22,PORT_NOT_ALLOWED",

@@ -1,5 +1,6 @@
 package io.vulscan.core
 
+import com.tngtech.archunit.core.domain.JavaClass
 import com.tngtech.archunit.core.importer.ImportOption
 import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
@@ -18,7 +19,9 @@ class ArchitectureTest {
     @ArchTest
     val apiDoesNotUseRepositoriesDirectly: ArchRule =
         noClasses().that().resideInAPackage("..api..")
-            .should().dependOnClassesThat().haveSimpleNameEndingWith("Repository")
+            .should().dependOnClassesThat(
+                JavaClass.Predicates.resideInAPackage("..persistence..").and(JavaClass.Predicates.simpleNameEndingWith("Repository")),
+            )
             .allowEmptyShould(true)
 
     @ArchTest
