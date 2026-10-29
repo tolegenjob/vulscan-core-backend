@@ -3,6 +3,8 @@ scanner:
     max-active-scans-global: 1000
   jobs:
     lease-sec: 3
+  watchdog:
+    enabled: false
   outbox:
     poll-ms: 100
     enabled: false

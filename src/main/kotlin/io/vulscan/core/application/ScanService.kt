@@ -1,6 +1,7 @@
 package io.vulscan.core.application
 
 import io.vulscan.core.config.ScannerProperties
+import io.vulscan.core.domain.ConflictException
 import io.vulscan.core.domain.IllegalStateTransitionException
 import io.vulscan.core.domain.JobStateMachine
 import io.vulscan.core.domain.JobStatus
@@ -121,13 +122,14 @@ class ScanService(
         val scan = scans.lockById(id) ?: throw NotFoundException("Scan not found")
         OwnershipPolicy.requireAccess(user, scan.startedBy)
         val current = jobs.findByScanId(id)
-        if (current.all { JobStateMachine.isTerminal(it.status) }) throw IllegalStateTransitionException("Scan is already finished")
+        if (current.all { JobStateMachine.isTerminal(it.status) }) throw ConflictException("Scan is already finished", "SCAN_ALREADY_FINISHED")
         scan.cancelRequested = true
         current.filter { it.status == JobStatus.PENDING || it.status == JobStatus.QUEUED }.forEach { job ->
             JobStateMachine.transition(job.status, JobStatus.CANCELLED)
             job.status = JobStatus.CANCELLED
             job.finishedAt = Instant.now()
             jobs.save(job)
+            outbox.cancelPending(job.id)
         }
         scan.status = ScanStatusAggregator.aggregate(current.map { it.status }, true)
         if (scan.status == ScanStatus.CANCELLED) scan.finishedAt = Instant.now()

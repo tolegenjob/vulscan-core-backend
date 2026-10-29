@@ -103,6 +103,16 @@ interface ScanJobRepository : JpaRepository<ScanJobEntity, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select j from ScanJobEntity j where j.id = :id")
     fun lockById(@Param("id") id: UUID): ScanJobEntity?
+
+    /** Кандидаты для watchdog: без блокировок, состояние перепроверяется под блокировкой. */
+    @Query("select j.id from ScanJobEntity j where j.status = io.vulscan.core.domain.JobStatus.RUNNING and j.leaseExpiresAt < :now order by j.leaseExpiresAt")
+    fun findLostLease(@Param("now") now: java.time.Instant, pageable: Pageable): List<UUID>
+
+    @Query("select j.id from ScanJobEntity j where j.status = io.vulscan.core.domain.JobStatus.QUEUED and j.queuedAt < :threshold order by j.queuedAt")
+    fun findStaleQueued(@Param("threshold") threshold: java.time.Instant, pageable: Pageable): List<UUID>
+
+    @Query("select j.id from ScanJobEntity j where j.status = io.vulscan.core.domain.JobStatus.RUNNING and j.deadlineAt < :now order by j.deadlineAt")
+    fun findPastDeadline(@Param("now") now: java.time.Instant, pageable: Pageable): List<UUID>
 }
 
 interface FindingRepository : JpaRepository<FindingEntity, UUID>, JpaSpecificationExecutor<FindingEntity> {
@@ -148,6 +158,15 @@ interface FindingRepository : JpaRepository<FindingEntity, UUID>, JpaSpecificati
 
 interface OutboxEventRepository : JpaRepository<OutboxEventEntity, UUID> {
     fun findFirstByAggregateIdOrderByCreatedAtDesc(aggregateId: UUID): OutboxEventEntity?
+
+    /** Помечает неопубликованные сообщения задания отправленными, чтобы отменённое задание не попало в Kafka. */
+    @Modifying(clearAutomatically = false, flushAutomatically = true)
+    @Query(
+        value = "UPDATE outbox_events SET status = 'SENT', sent_at = now(), headers = headers || jsonb_build_object('cancelled', 'true') " +
+            "WHERE aggregate_id = :jobId AND status = 'PENDING'",
+        nativeQuery = true,
+    )
+    fun cancelPending(@Param("jobId") jobId: UUID): Int
 
     @Query(
         value = "SELECT * FROM outbox_events WHERE status = 'PENDING' AND next_attempt_at <= now() ORDER BY created_at LIMIT :limit FOR UPDATE SKIP LOCKED",
