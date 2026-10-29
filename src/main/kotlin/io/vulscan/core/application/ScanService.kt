@@ -116,7 +116,7 @@ class ScanService(
     /** Запрашивает отмену: ещё не запущенные задания отменяются сразу, запущенные — по heartbeat. */
     @Transactional
     fun cancel(user: CurrentUser, id: UUID): ScanView {
-        val scan = scans.findById(id).orElseThrow { NotFoundException("Scan not found") }
+        val scan = scans.lockById(id) ?: throw NotFoundException("Scan not found")
         OwnershipPolicy.requireAccess(user, scan.startedBy)
         val current = jobs.findByScanId(id)
         if (current.all { JobStateMachine.isTerminal(it.status) }) throw IllegalStateTransitionException("Scan is already finished")

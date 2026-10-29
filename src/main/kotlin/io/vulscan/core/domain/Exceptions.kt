@@ -17,6 +17,9 @@ object ErrorCodes {
     const val VERIFICATION_FAILED = "VERIFICATION_FAILED"
     const val TARGET_NOT_VERIFIED = "TARGET_NOT_VERIFIED"
     const val PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE"
+    const val JOB_CANCELLED = "JOB_CANCELLED"
+    const val JOB_NOT_CLAIMABLE = "JOB_NOT_CLAIMABLE"
+    const val LEASE_LOST = "LEASE_LOST"
 }
 
 /** Ожидаемая бизнес-ошибка. Сообщение показывается клиенту, поэтому не должно содержать секретов. */
@@ -42,3 +45,6 @@ class ForbiddenException(message: String = "Access denied") : DomainException(Er
 class ValidationFailedException(message: String) : DomainException(ErrorCodes.VALIDATION_FAILED, message)
 
 class PayloadTooLargeException(message: String) : DomainException(ErrorCodes.PAYLOAD_TOO_LARGE, message)
+
+/** Ресурс больше не доступен (например, задание отменено); HTTP 410. */
+class GoneException(code: String, message: String) : DomainException(code, message)

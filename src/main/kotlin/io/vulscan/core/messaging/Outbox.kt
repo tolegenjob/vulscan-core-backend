@@ -104,6 +104,8 @@ class OutboxRelay(
     }
 
     private fun markQueued(jobId: UUID) {
+        val scanId = jobs.findById(jobId).orElse(null)?.scanId ?: return
+        val scan = scans.lockById(scanId) ?: return
         val job = jobs.findById(jobId).orElse(null) ?: return
         // Повторная публикация не должна менять уже продвинувшееся задание
         if (job.status != JobStatus.PENDING) return
@@ -111,7 +113,6 @@ class OutboxRelay(
         job.status = JobStatus.QUEUED
         job.queuedAt = Instant.now()
         jobs.save(job)
-        val scan = scans.findById(job.scanId).orElse(null) ?: return
         scan.status = ScanStatusAggregator.aggregate(jobs.findByScanId(scan.id).map { it.status }, scan.cancelRequested)
         scans.save(scan)
     }

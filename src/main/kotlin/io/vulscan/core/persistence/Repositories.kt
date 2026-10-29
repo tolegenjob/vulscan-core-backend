@@ -3,6 +3,9 @@ package io.vulscan.core.persistence
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import jakarta.persistence.LockModeType
+import org.springframework.data.jpa.repository.Lock
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
@@ -58,10 +61,48 @@ interface ScanRepository : JpaRepository<ScanEntity, UUID> {
     fun countByStatusIn(statuses: Collection<io.vulscan.core.domain.ScanStatus>): Long
 
     fun findByStartedBy(startedBy: UUID, pageable: Pageable): Page<ScanEntity>
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from ScanEntity s where s.id = :id")
+    fun lockById(@Param("id") id: UUID): ScanEntity?
 }
 
 interface ScanJobRepository : JpaRepository<ScanJobEntity, UUID> {
     fun findByScanId(scanId: UUID): List<ScanJobEntity>
+
+    /** Атомарный захват: успешен только для QUEUED-задания с совпадающей попыткой. */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+        value = "UPDATE scan_jobs SET status = 'RUNNING', worker_id = :workerId, lease_expires_at = :leaseUntil, " +
+            "started_at = COALESCE(started_at, now()) WHERE id = :id AND status = 'QUEUED' AND attempt = :attempt",
+        nativeQuery = true,
+    )
+    fun claim(
+        @Param("id") id: UUID,
+        @Param("attempt") attempt: Int,
+        @Param("workerId") workerId: String,
+        @Param("leaseUntil") leaseUntil: java.time.Instant,
+    ): Int
+
+    /** Продление lease: успешно только для RUNNING-задания этого worker и этой попытки. */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(
+        value = "UPDATE scan_jobs SET lease_expires_at = :leaseUntil, requests_sent = :requestsSent, endpoints_done = :endpointsDone " +
+            "WHERE id = :id AND status = 'RUNNING' AND worker_id = :workerId AND attempt = :attempt",
+        nativeQuery = true,
+    )
+    fun extendLease(
+        @Param("id") id: UUID,
+        @Param("attempt") attempt: Int,
+        @Param("workerId") workerId: String,
+        @Param("leaseUntil") leaseUntil: java.time.Instant,
+        @Param("requestsSent") requestsSent: Int,
+        @Param("endpointsDone") endpointsDone: Int,
+    ): Int
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select j from ScanJobEntity j where j.id = :id")
+    fun lockById(@Param("id") id: UUID): ScanJobEntity?
 }
 
 interface FindingRepository : JpaRepository<FindingEntity, UUID>, JpaSpecificationExecutor<FindingEntity>
@@ -76,4 +117,6 @@ interface OutboxEventRepository : JpaRepository<OutboxEventEntity, UUID> {
 
 interface ProcessedMessageRepository : JpaRepository<ProcessedMessageEntity, UUID>
 
-interface AuditEventRepository : JpaRepository<AuditEventEntity, UUID>
+interface AuditEventRepository : JpaRepository<AuditEventEntity, UUID> {
+    fun countByActionAndSubjectId(action: String, subjectId: UUID): Long
+}
