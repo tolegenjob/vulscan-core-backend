@@ -115,14 +115,16 @@ class JobControlServiceIT : PostgresTestBase() {
         val jobId = f.jobs[ModuleType.XSS]
         val pool = Executors.newFixedThreadPool(2)
         val start = CountDownLatch(1)
-        val results = pool.invokeAll(
-            listOf("w-a", "w-b").map { w ->
+        val futures = listOf("w-a", "w-b").map { w ->
+            pool.submit(
                 Callable {
                     start.await()
                     internal.post("/internal/v1/jobs/$jobId/claim", claimBody(worker = w), InternalApiClient.XSS, w).statusCode()
-                }
-            },
-        ).also { start.countDown() }.map { it.get() }
+                },
+            )
+        }
+        start.countDown()
+        val results = futures.map { it.get(30, java.util.concurrent.TimeUnit.SECONDS) }
         pool.shutdown()
         assertThat(results.sorted()).containsExactly(200, 409)
     }
