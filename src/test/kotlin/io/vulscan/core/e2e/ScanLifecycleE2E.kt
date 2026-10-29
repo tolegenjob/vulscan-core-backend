@@ -54,7 +54,7 @@ class ScanLifecycleE2E : PostgresTestBase() {
     private class EchoEngine(override val moduleType: ModuleType) : DetectionEngine {
         override fun run(ctx: JobContext) {
             ctx.job.endpoints.forEach { endpoint ->
-                ctx.report(finding(ctx.job.moduleType, endpoint.url, endpoint.id))
+                ctx.report(finding(ctx.job.moduleType, endpoint.url, endpoint.endpointId))
                 ctx.stats.findingReported()
                 ctx.stats.endpointTested()
             }
