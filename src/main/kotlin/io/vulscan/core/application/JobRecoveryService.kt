@@ -24,6 +24,7 @@ class JobRecoveryService(
     private val requeuer: JobRequeuer,
     private val refresher: ScanStatusRefresher,
     private val properties: ScannerProperties,
+    private val metrics: io.vulscan.core.observability.Metrics,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -45,6 +46,7 @@ class JobRecoveryService(
             job.attempt < properties.jobs.maxAttempts -> requeuer.requeue(job)
             else -> finish(job, JobStatus.FAILED, "HEARTBEAT_LOST", "Worker stopped sending heartbeats")
         }
+        metrics.watchdogRecovery("lost_lease")
         log.warn("Recovered job {} after lost lease (attempt {})", jobId, job.attempt)
         refresher.refresh(job.scanId)
         return true
@@ -61,6 +63,7 @@ class JobRecoveryService(
         } else {
             finish(job, JobStatus.FAILED, "QUEUE_TIMEOUT", "No worker picked up the job in time")
         }
+        metrics.watchdogRecovery("queue_timeout")
         log.warn("Queued job {} timed out (attempt {})", jobId, job.attempt)
         refresher.refresh(job.scanId)
         return true
@@ -72,6 +75,7 @@ class JobRecoveryService(
         val job = lock(jobId) ?: return false
         if (job.status != JobStatus.RUNNING || !job.deadlineAt.isBefore(now)) return false
         finish(job, JobStatus.FAILED, "DEADLINE_EXCEEDED", "Job exceeded its deadline")
+        metrics.watchdogRecovery("deadline")
         log.warn("Job {} exceeded its deadline", jobId)
         refresher.refresh(job.scanId)
         return true
@@ -85,6 +89,7 @@ class JobRecoveryService(
 
     private fun finish(job: ScanJobEntity, status: JobStatus, code: String?, message: String?) {
         JobStateMachine.transition(job.status, status)
+        metrics.jobTransition(job.status, status)
         job.status = status
         job.finishedAt = Instant.now()
         job.errorCode = code

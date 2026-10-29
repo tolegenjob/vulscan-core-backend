@@ -48,6 +48,7 @@ class JobControlService(
     private val cipher: SecretCipher,
     private val properties: ScannerProperties,
     private val refresher: ScanStatusRefresher,
+    private val metrics: io.vulscan.core.observability.Metrics,
 ) {
 
     @Transactional
@@ -65,6 +66,7 @@ class JobControlService(
             refresher.refresh(job.scanId)
             return ClaimOutcome.Cancelled
         }
+        metrics.jobTransition(JobStatus.QUEUED, JobStatus.RUNNING)
         refresher.refresh(job.scanId)
         return ClaimOutcome.Granted(ClaimResponse(leaseUntil, HEARTBEAT_INTERVAL_SEC))
     }
@@ -114,6 +116,7 @@ class JobControlService(
 
     private fun cancelRunning(job: ScanJobEntity) {
         JobStateMachine.transition(job.status, JobStatus.CANCELLED)
+        metrics.jobTransition(job.status, JobStatus.CANCELLED)
         job.status = JobStatus.CANCELLED
         job.finishedAt = Instant.now()
         jobs.save(job)

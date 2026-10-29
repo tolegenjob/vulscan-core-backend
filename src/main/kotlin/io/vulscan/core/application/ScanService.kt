@@ -52,6 +52,7 @@ class ScanService(
     private val audit: AuditService,
     private val properties: ScannerProperties,
     private val jdbc: JdbcTemplate,
+    private val metrics: io.vulscan.core.observability.Metrics,
 ) {
     private val activeStatuses = listOf(ScanStatus.PENDING, ScanStatus.RUNNING, ScanStatus.CANCELLING)
 
@@ -98,6 +99,7 @@ class ScanService(
             outbox.save(OutboxEventFactory.jobMessage(payload, correlationId))
             job
         }
+        metrics.scanCreated()
         audit.record("SCAN_CREATED", user.id, "SCAN", scan.id, mapOf("modules" to command.modules.map { it.name }, "endpoints" to selected.size))
         return ScanView(scan, createdJobs)
     }
@@ -126,6 +128,7 @@ class ScanService(
         scan.cancelRequested = true
         current.filter { it.status == JobStatus.PENDING || it.status == JobStatus.QUEUED }.forEach { job ->
             JobStateMachine.transition(job.status, JobStatus.CANCELLED)
+            metrics.jobTransition(job.status, JobStatus.CANCELLED)
             job.status = JobStatus.CANCELLED
             job.finishedAt = Instant.now()
             jobs.save(job)

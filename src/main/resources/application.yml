@@ -52,6 +52,9 @@ management:
     health:
       probes:
         enabled: true
+      group:
+        readiness:
+          include: readinessState,db,kafkaProducer
 
 scanner:
   scope:

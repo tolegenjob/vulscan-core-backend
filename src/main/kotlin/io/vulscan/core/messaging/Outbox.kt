@@ -90,6 +90,8 @@ class OutboxRelay(
     /** Хук для тестов: вызывается после отправки и до фиксации транзакции. */
     var afterSend: () -> Unit = {},
 ) {
+    var metrics: io.vulscan.core.observability.Metrics? = null
+
     private val log = LoggerFactory.getLogger(OutboxRelay::class.java)
 
     /** @return число опубликованных сообщений. */
@@ -125,6 +127,7 @@ class OutboxRelay(
         // Повторная публикация не должна менять уже продвинувшееся задание
         if (job.status != JobStatus.PENDING) return
         JobStateMachine.transition(job.status, JobStatus.QUEUED)
+        metrics?.jobTransition(job.status, JobStatus.QUEUED)
         job.status = JobStatus.QUEUED
         job.queuedAt = Instant.now()
         jobs.save(job)
@@ -144,7 +147,8 @@ class OutboxConfig {
         tx: TransactionTemplate,
         sender: OutboxSender,
         properties: ScannerProperties,
-    ) = OutboxRelay(outbox, jobs, scans, tx, sender, properties.outbox.batchSize)
+        metrics: io.vulscan.core.observability.Metrics,
+    ) = OutboxRelay(outbox, jobs, scans, tx, sender, properties.outbox.batchSize).also { it.metrics = metrics }
 
     @Bean
     fun topics(): KafkaAdmin.NewTopics {

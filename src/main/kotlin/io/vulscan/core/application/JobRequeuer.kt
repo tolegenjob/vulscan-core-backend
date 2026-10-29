@@ -11,12 +11,17 @@ import java.time.Instant
 
 /** Возвращает задание в очередь с новой попыткой: статус QUEUED, attempt+1 и новое сообщение в outbox. */
 @Component
-class JobRequeuer(private val jobs: ScanJobRepository, private val outbox: OutboxEventRepository) {
+class JobRequeuer(
+    private val jobs: ScanJobRepository,
+    private val outbox: OutboxEventRepository,
+    private val metrics: io.vulscan.core.observability.Metrics,
+) {
 
     fun requeue(job: ScanJobEntity) {
         JobStateMachine.transition(job.status, JobStatus.QUEUED)
         val previous = outbox.findFirstByAggregateIdOrderByCreatedAtDesc(job.id)
             ?: throw IllegalStateException("No outbox message found for job ${job.id}")
+        metrics.jobTransition(job.status, JobStatus.QUEUED)
         job.status = JobStatus.QUEUED
         job.attempt += 1
         job.workerId = null

@@ -43,6 +43,7 @@ class JobResultService(
     private val requeuer: JobRequeuer,
     private val audit: AuditService,
     private val properties: ScannerProperties,
+    private val metrics: io.vulscan.core.observability.Metrics,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -100,6 +101,7 @@ class JobResultService(
         if (p.attempt != job.attempt) return ResultOutcome.Ignored("stale attempt")
         if (job.status != JobStatus.RUNNING) return ResultOutcome.Ignored("job is ${job.status}")
         JobStateMachine.transition(job.status, JobStatus.COMPLETED)
+        metrics.jobTransition(job.status, JobStatus.COMPLETED)
         job.status = JobStatus.COMPLETED
         job.finishedAt = Instant.now()
         job.stats = p.stats
@@ -124,6 +126,7 @@ class JobResultService(
             log.info("Job {} requeued after {} (attempt {})", job.id, p.errorCode, job.attempt)
         } else {
             JobStateMachine.transition(job.status, JobStatus.FAILED)
+            metrics.jobTransition(job.status, JobStatus.FAILED)
             job.status = JobStatus.FAILED
             job.finishedAt = Instant.now()
             job.errorCode = p.errorCode.name

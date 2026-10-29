@@ -163,6 +163,8 @@ interface FindingRepository : JpaRepository<FindingEntity, UUID>, JpaSpecificati
 interface OutboxEventRepository : JpaRepository<OutboxEventEntity, UUID> {
     fun findFirstByAggregateIdOrderByCreatedAtDesc(aggregateId: UUID): OutboxEventEntity?
 
+    fun countByStatus(status: io.vulscan.core.domain.OutboxStatus): Long
+
     /** Помечает неопубликованные сообщения задания отправленными, чтобы отменённое задание не попало в Kafka. */
     @Modifying(clearAutomatically = false, flushAutomatically = true)
     @Query(
