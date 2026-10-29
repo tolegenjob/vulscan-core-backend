@@ -33,6 +33,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set +o pipefail
           {
             echo "CI failed. Key lines:"
             echo '```'
