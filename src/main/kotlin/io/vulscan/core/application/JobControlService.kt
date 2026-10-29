@@ -47,6 +47,7 @@ class JobControlService(
     private val auditEvents: AuditEventRepository,
     private val cipher: SecretCipher,
     private val properties: ScannerProperties,
+    private val refresher: ScanStatusRefresher,
 ) {
 
     @Transactional
@@ -61,10 +62,10 @@ class JobControlService(
         }
         if (scan.cancelRequested) {
             cancelRunning(job)
-            refreshScan(job.scanId)
+            refresher.refresh(job.scanId)
             return ClaimOutcome.Cancelled
         }
-        refreshScan(job.scanId)
+        refresher.refresh(job.scanId)
         return ClaimOutcome.Granted(ClaimResponse(leaseUntil, HEARTBEAT_INTERVAL_SEC))
     }
 
@@ -77,7 +78,7 @@ class JobControlService(
         val job = jobs.findById(jobId).orElseThrow { NotFoundException("Job not found") }
         if (scan.cancelRequested) {
             cancelRunning(job)
-            refreshScan(job.scanId)
+            refresher.refresh(job.scanId)
             return HeartbeatResponse(cancel = true, leaseExpiresAt = leaseUntil)
         }
         return HeartbeatResponse(cancel = false, leaseExpiresAt = leaseUntil)
@@ -116,14 +117,6 @@ class JobControlService(
         job.status = JobStatus.CANCELLED
         job.finishedAt = Instant.now()
         jobs.save(job)
-    }
-
-    /** Пересчитывает статус скана по статусам его заданий. Вызывающий уже держит блокировку строки скана. */
-    private fun refreshScan(scanId: UUID) {
-        val scan = scans.lockById(scanId) ?: return
-        scan.status = ScanStatusAggregator.aggregate(jobs.findByScanId(scanId).map { it.status }, scan.cancelRequested)
-        if (!scan.status.isActive && scan.finishedAt == null) scan.finishedAt = Instant.now()
-        scans.save(scan)
     }
 
     companion object {

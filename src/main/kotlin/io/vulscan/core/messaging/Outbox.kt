@@ -48,6 +48,21 @@ object OutboxEventFactory {
         )
     }
 
+    /** Копия сообщения задания для новой попытки: новый messageId, тот же jobId, `attempt` увеличен. */
+    @Suppress("UNCHECKED_CAST")
+    fun retryOf(previous: OutboxEventEntity, attempt: Int): OutboxEventEntity {
+        val envelope = previous.payload.toMutableMap()
+        envelope["messageId"] = UUID.randomUUID().toString()
+        envelope["occurredAt"] = Instant.now().toString()
+        val inner = (envelope["payload"] as Map<String, Any?>).toMutableMap()
+        inner["attempt"] = attempt
+        envelope["payload"] = inner
+        return OutboxEventEntity(
+            aggregateId = previous.aggregateId, topic = previous.topic, messageKey = previous.messageKey,
+            payload = envelope, headers = previous.headers, nextAttemptAt = Instant.now(),
+        )
+    }
+
     fun serializedSize(payload: ScanJobPayload, correlationId: UUID): Int =
         Json.write(Envelope(type = MessageType.SCAN_JOB, correlationId = correlationId, payload = payload)).toByteArray().size
 }

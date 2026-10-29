@@ -105,9 +105,47 @@ interface ScanJobRepository : JpaRepository<ScanJobEntity, UUID> {
     fun lockById(@Param("id") id: UUID): ScanJobEntity?
 }
 
-interface FindingRepository : JpaRepository<FindingEntity, UUID>, JpaSpecificationExecutor<FindingEntity>
+interface FindingRepository : JpaRepository<FindingEntity, UUID>, JpaSpecificationExecutor<FindingEntity> {
+    fun countByJobId(jobId: UUID): Long
+
+    /** Идемпотентная вставка: повтор того же (job_id, fingerprint) ничего не меняет. Возвращает число вставленных строк. */
+    @Modifying(flushAutomatically = true)
+    @Query(
+        value = "INSERT INTO findings (id, job_id, scan_id, target_id, module_type, vuln_type, verdict, severity, confidence, fingerprint, " +
+            "endpoint_id, method, url, parameter_name, parameter_location, title, summary, recommendation, cwe, details, evidence) " +
+            "VALUES (:id, :jobId, :scanId, :targetId, :moduleType, :vulnType, :verdict, :severity, :confidence, :fingerprint, " +
+            ":endpointId, :method, :url, :parameterName, :parameterLocation, :title, :summary, :recommendation, :cwe, " +
+            "CAST(:details AS jsonb), CAST(:evidence AS jsonb)) ON CONFLICT (job_id, fingerprint) DO NOTHING",
+        nativeQuery = true,
+    )
+    fun insertIgnore(
+        @Param("id") id: UUID,
+        @Param("jobId") jobId: UUID,
+        @Param("scanId") scanId: UUID,
+        @Param("targetId") targetId: UUID,
+        @Param("moduleType") moduleType: String,
+        @Param("vulnType") vulnType: String,
+        @Param("verdict") verdict: String,
+        @Param("severity") severity: String,
+        @Param("confidence") confidence: Int,
+        @Param("fingerprint") fingerprint: String,
+        @Param("endpointId") endpointId: UUID?,
+        @Param("method") method: String,
+        @Param("url") url: String,
+        @Param("parameterName") parameterName: String?,
+        @Param("parameterLocation") parameterLocation: String?,
+        @Param("title") title: String,
+        @Param("summary") summary: String,
+        @Param("recommendation") recommendation: String,
+        @Param("cwe") cwe: String,
+        @Param("details") details: String,
+        @Param("evidence") evidence: String,
+    ): Int
+}
 
 interface OutboxEventRepository : JpaRepository<OutboxEventEntity, UUID> {
+    fun findFirstByAggregateIdOrderByCreatedAtDesc(aggregateId: UUID): OutboxEventEntity?
+
     @Query(
         value = "SELECT * FROM outbox_events WHERE status = 'PENDING' AND next_attempt_at <= now() ORDER BY created_at LIMIT :limit FOR UPDATE SKIP LOCKED",
         nativeQuery = true,
@@ -115,7 +153,15 @@ interface OutboxEventRepository : JpaRepository<OutboxEventEntity, UUID> {
     fun lockPending(@Param("limit") limit: Int): List<OutboxEventEntity>
 }
 
-interface ProcessedMessageRepository : JpaRepository<ProcessedMessageEntity, UUID>
+interface ProcessedMessageRepository : JpaRepository<ProcessedMessageEntity, UUID> {
+    /** Возвращает 1, если сообщение обрабатывается впервые, и 0 для дубликата. */
+    @Modifying(flushAutomatically = true)
+    @Query(
+        value = "INSERT INTO processed_messages (message_id, consumer) VALUES (:id, :consumer) ON CONFLICT (message_id) DO NOTHING",
+        nativeQuery = true,
+    )
+    fun markProcessed(@Param("id") id: UUID, @Param("consumer") consumer: String): Int
+}
 
 interface AuditEventRepository : JpaRepository<AuditEventEntity, UUID> {
     fun countByActionAndSubjectId(action: String, subjectId: UUID): Long

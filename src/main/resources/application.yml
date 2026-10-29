@@ -22,6 +22,15 @@ spring:
         max.block.ms: 3000
         request.timeout.ms: 3000
         delivery.timeout.ms: 6000
+    consumer:
+      group-id: core-results
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: manual
+      missing-topics-fatal: false
   session:
     jdbc:
       initialize-schema: never
