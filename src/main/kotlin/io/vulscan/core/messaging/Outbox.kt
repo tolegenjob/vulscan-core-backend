@@ -119,7 +119,7 @@ class OutboxRelay(
     }
 
     private fun markQueued(jobId: UUID) {
-        val scanId = jobs.findById(jobId).orElse(null)?.scanId ?: return
+        val scanId = jobs.findScanId(jobId) ?: return
         val scan = scans.lockById(scanId) ?: return
         val job = jobs.findById(jobId).orElse(null) ?: return
         // Повторная публикация не должна менять уже продвинувшееся задание

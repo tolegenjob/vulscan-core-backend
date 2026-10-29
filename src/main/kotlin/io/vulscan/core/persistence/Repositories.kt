@@ -104,6 +104,10 @@ interface ScanJobRepository : JpaRepository<ScanJobEntity, UUID> {
     @Query("select j from ScanJobEntity j where j.id = :id")
     fun lockById(@Param("id") id: UUID): ScanJobEntity?
 
+    /** Скалярный запрос: не загружает сущность в контекст, чтобы последующая блокировка прочитала свежее состояние. */
+    @Query("select j.scanId from ScanJobEntity j where j.id = :id")
+    fun findScanId(@Param("id") id: UUID): UUID?
+
     /** Кандидаты для watchdog: без блокировок, состояние перепроверяется под блокировкой. */
     @Query("select j.id from ScanJobEntity j where j.status = io.vulscan.core.domain.JobStatus.RUNNING and j.leaseExpiresAt < :now order by j.leaseExpiresAt")
     fun findLostLease(@Param("now") now: java.time.Instant, pageable: Pageable): List<UUID>

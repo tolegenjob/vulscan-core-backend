@@ -78,7 +78,7 @@ class JobRecoveryService(
     }
 
     private fun lock(jobId: UUID): ScanJobEntity? {
-        val scanId = jobs.findById(jobId).orElse(null)?.scanId ?: return null
+        val scanId = jobs.findScanId(jobId) ?: return null
         scans.lockById(scanId) ?: return null
         return jobs.lockById(jobId)
     }
