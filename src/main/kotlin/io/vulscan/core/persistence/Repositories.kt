@@ -108,6 +108,9 @@ interface ScanJobRepository : JpaRepository<ScanJobEntity, UUID> {
 interface FindingRepository : JpaRepository<FindingEntity, UUID>, JpaSpecificationExecutor<FindingEntity> {
     fun countByJobId(jobId: UUID): Long
 
+    @Query("select f.severity, count(f) from FindingEntity f where f.scanId = :scanId group by f.severity")
+    fun countBySeverity(@Param("scanId") scanId: UUID): List<Array<Any>>
+
     /** Идемпотентная вставка: повтор того же (job_id, fingerprint) ничего не меняет. Возвращает число вставленных строк. */
     @Modifying(flushAutomatically = true)
     @Query(

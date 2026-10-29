@@ -66,6 +66,7 @@ class ScanController(private val service: ScanService) {
     private fun toResponse(view: ScanView) = ScanResponse(
         id = view.scan.id, targetId = view.scan.targetId, policyId = view.scan.policyId, status = view.scan.status,
         cancelRequested = view.scan.cancelRequested, createdAt = view.scan.createdAt, finishedAt = view.scan.finishedAt,
+        findingCounts = io.vulscan.kit.contracts.Severity.entries.associateWith { view.findingCounts[it] ?: 0L },
         jobs = view.jobs.sortedBy { it.moduleType }.map {
             ScanJobResponse(
                 it.id, it.moduleType, it.status, it.attempt, it.requestsSent, it.endpointsDone, it.errorCode, it.errorMessage,

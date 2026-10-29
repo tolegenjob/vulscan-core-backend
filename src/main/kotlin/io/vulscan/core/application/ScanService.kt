@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
 
-data class ScanView(val scan: ScanEntity, val jobs: List<ScanJobEntity>)
+data class ScanView(val scan: ScanEntity, val jobs: List<ScanJobEntity>, val findingCounts: Map<io.vulscan.kit.contracts.Severity, Long> = emptyMap())
 
 @Service
 class ScanService(
@@ -45,6 +45,7 @@ class ScanService(
     private val endpoints: TargetEndpointRepository,
     private val identities: TestIdentityRepository,
     private val rules: ResourceAccessRuleRepository,
+    private val findings: io.vulscan.core.persistence.FindingRepository,
     private val targetService: TargetService,
     private val scopePolicy: ScopePolicyService,
     private val audit: AuditService,
@@ -104,7 +105,8 @@ class ScanService(
     fun get(user: CurrentUser, id: UUID): ScanView {
         val scan = scans.findById(id).orElseThrow { NotFoundException("Scan not found") }
         OwnershipPolicy.requireAccess(user, scan.startedBy)
-        return ScanView(scan, jobs.findByScanId(id))
+        val counts = findings.countBySeverity(id).associate { (it[0] as io.vulscan.kit.contracts.Severity) to (it[1] as Number).toLong() }
+        return ScanView(scan, jobs.findByScanId(id), counts)
     }
 
     @Transactional(readOnly = true)

@@ -25,6 +25,9 @@ class ApiClient(private val port: Int) {
     fun post(path: String, body: String = ""): HttpResponse<String> =
         send(builder(path).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body)))
 
+    fun patch(path: String, body: String): HttpResponse<String> =
+        send(builder(path).header("Content-Type", "application/json").method("PATCH", HttpRequest.BodyPublishers.ofString(body)))
+
     fun delete(path: String): HttpResponse<String> = send(builder(path).DELETE())
 
     private fun builder(path: String): HttpRequest.Builder {

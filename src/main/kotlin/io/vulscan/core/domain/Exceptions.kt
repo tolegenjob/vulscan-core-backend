@@ -17,6 +17,7 @@ object ErrorCodes {
     const val VERIFICATION_FAILED = "VERIFICATION_FAILED"
     const val TARGET_NOT_VERIFIED = "TARGET_NOT_VERIFIED"
     const val PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE"
+    const val PAGE_SIZE_TOO_LARGE = "PAGE_SIZE_TOO_LARGE"
     const val JOB_CANCELLED = "JOB_CANCELLED"
     const val JOB_NOT_CLAIMABLE = "JOB_NOT_CLAIMABLE"
     const val LEASE_LOST = "LEASE_LOST"
@@ -42,7 +43,7 @@ class RateLimitedException(val retryAfterSec: Long) : DomainException(ErrorCodes
 
 class ForbiddenException(message: String = "Access denied") : DomainException(ErrorCodes.FORBIDDEN, message)
 
-class ValidationFailedException(message: String) : DomainException(ErrorCodes.VALIDATION_FAILED, message)
+class ValidationFailedException(message: String, code: String = ErrorCodes.VALIDATION_FAILED) : DomainException(code, message)
 
 class PayloadTooLargeException(message: String) : DomainException(ErrorCodes.PAYLOAD_TOO_LARGE, message)
 

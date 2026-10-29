@@ -53,6 +53,7 @@ data class ScanResponse(
     val createdAt: Instant,
     val finishedAt: Instant?,
     val jobs: List<ScanJobResponse>,
+    val findingCounts: Map<io.vulscan.kit.contracts.Severity, Long> = emptyMap(),
 )
 
 data class ScanListItem(val id: UUID, val targetId: UUID, val status: ScanStatus, val createdAt: Instant, val finishedAt: Instant?)
