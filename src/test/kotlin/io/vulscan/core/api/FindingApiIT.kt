@@ -63,7 +63,7 @@ class FindingApiIT : PersistenceTestBase() {
     private fun ids(client: ApiClient, query: String): List<String> {
         val response = client.get("/api/v1/findings?$query")
         assertThat(response.statusCode()).`as`(response.body()).isEqualTo(200)
-        return Json.mapper.readTree(response.body()).get("items").map { it.get("id").asString() }
+        return Json.mapper.readTree(response.body()).get("items").toList().map { it.get("id").asString() }
     }
 
     @Test
@@ -111,7 +111,7 @@ class FindingApiIT : PersistenceTestBase() {
         assertThat(ids(o.client, "scanId=${o.chain.scanId}&sort=severity,asc").first()).isEqualTo(bySeverity[Severity.INFO])
         val page2 = Json.mapper.readTree(o.client.get("/api/v1/findings?scanId=${o.chain.scanId}&sort=severity,desc&size=2&page=1").body())
         assertThat(page2.get("total").asInt()).isEqualTo(5)
-        assertThat(page2.get("items").map { it.get("id").asString() }).containsExactly(bySeverity[Severity.MEDIUM], bySeverity[Severity.LOW])
+        assertThat(page2.get("items").toList().map { it.get("id").asString() }).containsExactly(bySeverity[Severity.MEDIUM], bySeverity[Severity.LOW])
     }
 
     @Test

@@ -57,7 +57,7 @@ class DashboardQueryIT : PersistenceTestBase() {
         listOf("XSS", "SQLI", "IDOR").forEach { assertThat(json.get("openFindingsByModule").get(it).asLong()).isEqualTo(byModule[it] ?: 0L) }
         val byVerdict = manual("verdict")
         listOf("SUSPECTED", "LIKELY", "CONFIRMED").forEach { assertThat(json.get("openFindingsByVerdict").get(it).asLong()).isEqualTo(byVerdict[it] ?: 0L) }
-        assertThat(json.get("openFindingsBySeverity").map { it.asLong() }.sum()).isEqualTo(4000L)
+        assertThat(json.get("openFindingsBySeverity").toList().map { it.asLong() }.sum()).isEqualTo(4000L)
         assertThat(json.get("recentScans")).hasSize(1)
         assertThat(json.get("activeScans").asLong()).isEqualTo(1L)
     }
